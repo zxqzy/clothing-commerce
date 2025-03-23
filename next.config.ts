@@ -9,8 +9,12 @@ export default {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'cdn.shopify.com',
-        pathname: '/s/files/**'
+        hostname: 'img95.699pic.com',
+        // pathname: '/s/files/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.shopify.com'
       }
     ]
   }

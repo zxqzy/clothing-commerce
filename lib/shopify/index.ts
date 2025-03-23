@@ -1,8 +1,10 @@
+import { collection as collectionAPI, getDocs, query, where } from 'firebase/firestore';
 import {
   HIDDEN_PRODUCT_TAG,
   // SHOPIFY_GRAPHQL_API_ENDPOINT,
   TAGS
 } from 'lib/constants';
+import { db } from 'lib/firebase';
 import { ensureStartsWith } from 'lib/utils';
 import {
   revalidateTag
@@ -374,6 +376,14 @@ export async function getCollectionProducts({
   reverse?: boolean;
   sortKey?: string;
 }): Promise<Product[]> {
+  const productDocs = collectionAPI(db, 'product');
+  const productSnapshot = await getDocs(productDocs);
+  const products: Partial<Product>[] = []
+  productSnapshot.forEach(item => {
+    console.log(item.data())
+    products.push(item.data())
+  })
+
   // 'use cache';
   // cacheTag(TAGS.collections, TAGS.products);
   // cacheLife('days');
@@ -395,8 +405,9 @@ export async function getCollectionProducts({
   // return reshapeProducts(
   //   removeEdgesAndNodes(res.body.data.collection.products)
   // );
-  return Promise.resolve([
-    {
+  console.log(products)
+  return products.map(product => {
+    return {
       id: 'gid://shopify/Product/1',
       title: 'Product Title',
       description: 'Product Description',
@@ -451,9 +462,10 @@ export async function getCollectionProducts({
           width: 100,
           height: 100
         }
-      ]
-    }])
-
+      ],
+      ...product
+    }
+  })
 }
 
 export async function getCollections(): Promise<Collection[]> {
@@ -558,7 +570,7 @@ export async function getPages(): Promise<Page[]> {
   ])
 }
 
-export async function getProduct(handle: string): Promise<Product | undefined> {
+export async function getProduct(id: string): Promise<Product | undefined> {
   // 'use cache';
   // cacheTag(TAGS.products);
   // cacheLife('days');
@@ -571,7 +583,16 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
   // });
 
   // return reshapeProduct(res.body.data.product, false);
-  return Promise.resolve({
+  const productsRef = collectionAPI(db, "product")
+  // console.log(id)
+  const q = query(productsRef, where("id", "==", 1))
+  const productsSnapshot = await getDocs(q)
+  let product
+  productsSnapshot.forEach(item => {
+    product = item.data()
+  })
+  console.log(product)
+  return {
     id: 'gid://shopify/Product/1',
     title: 'Product Title',
     description: 'Product Description',
@@ -591,7 +612,7 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
       },
     },
     featuredImage: {
-      url: 'https://cdn.shopify.com/s/files/1/0000/0000/0000/products/product-image.jpg',
+      url: '',
       altText: 'Product Image',
       width: 100,
       height: 100,
@@ -600,7 +621,7 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
       title: 'Product Title',
       description: 'Product Description'
     },
-    createdAt: '2023-01-01T00:00:00Z',
+    // createdAt: '2023-01-01T00:00:00Z',
     updatedAt: '2023-01-01T00:00:00Z',
     variants: [
       {
@@ -621,13 +642,14 @@ export async function getProduct(handle: string): Promise<Product | undefined> {
     ],
     images: [
       {
-        url: 'https://cdn.shopify.com/s/files/1/0000/0000/0000/products/product-image.jpg',
+        url: '',
         altText: 'Product Image',
         width: 100,
         height: 100
       }
-    ]
-  })
+    ],
+    ...(product ?? {}),
+  }
 }
 
 export async function getProductRecommendations(

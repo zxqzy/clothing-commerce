@@ -13,10 +13,11 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 export async function generateMetadata(props: {
-  params: Promise<{ handle: string }>;
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const params = await props.params;
-  const product = await getProduct(params.handle);
+  console.log(params.id)
+  const product = await getProduct(params.id);
 
   if (!product) return notFound();
 
